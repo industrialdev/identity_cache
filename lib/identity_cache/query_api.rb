@@ -221,7 +221,7 @@ module IdentityCache
       end
 
       def resolve_cache_miss(id)
-        record = self.includes(cache_fetch_includes).reorder(nil).where(primary_key => id).first
+        record = self.includes(cache_fetch_includes).reorder(nil).where(primary_key => id).take
         if record
           preload_id_embedded_associations([record])
           record.readonly! if IdentityCache.fetch_read_only_records && should_use_cache?
@@ -299,7 +299,7 @@ module IdentityCache
         return [] if ids.empty?
 
         @id_column ||= columns.detect {|c| c.name == primary_key}
-        ids = ids.map{ |id| connection.type_cast(id, @id_column) }
+        ids = ids.map{ |id| connection.type_cast(id) }
         records = where(primary_key => ids).includes(cache_fetch_includes).to_a
         records.each(&:readonly!) if IdentityCache.fetch_read_only_records && should_use_cache?
         preload_id_embedded_associations(records)
